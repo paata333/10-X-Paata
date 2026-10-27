@@ -1,8 +1,13 @@
+import { ScrollToTop } from './components/layout/ScrollToTop'
+import { AuthProvider } from './context/AuthContext'
+import { AppRoutes } from './routes/AppRoutes'
+
 function App() {
   return (
-    <main className="grid min-h-screen place-items-center bg-slate-900 text-white">
-      <h1 className="text-4xl font-bold tracking-tight">10X Shop</h1>
-    </main>
+    <AuthProvider>
+      <ScrollToTop />
+      <AppRoutes />
+    </AuthProvider>
   )
 }
 
