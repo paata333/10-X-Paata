@@ -1,1 +1,19 @@
 @import "tailwindcss";
+
+body {
+  font-family: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+[data-display] {
+  font-family: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: -0.02em;
+}
+
+::selection {
+  background: #bef264;
+  color: #0a0a0a;
+}
