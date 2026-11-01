@@ -38,7 +38,7 @@ export function FormField({
         autoComplete={autoComplete}
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? errorId : undefined}
-        className={`w-full rounded-lg border-2 bg-white px-3.5 py-2.5 text-base outline-none transition-shadow focus:shadow-[3px_3px_0_0_#0a0a0a] motion-reduce:transition-none ${
+        className={`w-full rounded-lg border-2 bg-white px-3.5 py-2.5 text-base transition-shadow focus-visible:shadow-[3px_3px_0_0_#0a0a0a] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-950 motion-reduce:transition-none ${
           error ? 'border-red-600' : 'border-neutral-950'
         }`}
       />

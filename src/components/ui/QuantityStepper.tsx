@@ -8,7 +8,7 @@ interface QuantityStepperProps {
 }
 
 const stepButtonClasses =
-  'grid size-10 place-items-center text-xl font-bold transition-colors hover:bg-lime-200 focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-neutral-950 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent motion-reduce:transition-none'
+  'grid size-11 place-items-center text-xl font-bold transition-colors hover:bg-lime-200 focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-neutral-950 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent motion-reduce:transition-none'
 
 export function QuantityStepper({
   value,
