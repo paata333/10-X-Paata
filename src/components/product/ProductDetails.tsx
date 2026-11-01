@@ -66,7 +66,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
       </div>
 
       <div className="flex flex-col gap-5">
-        <p className="text-xs font-bold uppercase tracking-wider text-neutral-500">
+        <p className="text-xs font-bold uppercase tracking-wider text-neutral-600">
           {categoryLine}
         </p>
         <h1 className="text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl">
@@ -79,7 +79,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
           </span>
           {hasDiscount && (
             <>
-              <s className="text-lg font-medium text-neutral-500">{formatPrice(product.price)}</s>
+              <s className="text-lg font-medium text-neutral-600">{formatPrice(product.price)}</s>
               <span className="-rotate-3 rounded-md border-2 border-neutral-950 bg-green-300 px-2 py-0.5 text-sm font-extrabold">
                 −{Math.round(product.discountPercentage)}%
               </span>
@@ -93,7 +93,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
         </div>
 
         <div>
-          <h2 className="text-xs font-bold uppercase tracking-wider text-neutral-500">
+          <h2 className="text-xs font-bold uppercase tracking-wider text-neutral-600">
             Description
           </h2>
           <p className="mt-2 leading-relaxed text-neutral-800">{product.description}</p>
