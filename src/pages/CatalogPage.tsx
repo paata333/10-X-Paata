@@ -3,11 +3,13 @@ import { fetchProducts } from '../api/products.api'
 import { ProductGrid } from '../components/product/ProductGrid'
 import { Page } from '../components/ui/Page'
 import { StatusMessage } from '../components/ui/StatusMessage'
+import { useCart } from '../context/CartContext'
 import type { Product } from '../types/product'
 
 const PAGE_SIZE = 12
 
 export function CatalogPage() {
+  const { addItem } = useCart()
   const [products, setProducts] = useState<Product[]>([])
   const [total, setTotal] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
@@ -52,7 +54,7 @@ export function CatalogPage() {
 
       {!isLoading && !error && products.length > 0 && (
         <>
-          <ProductGrid products={products} />
+          <ProductGrid products={products} onAdd={(product) => addItem(product, 1)} />
           <p className="mt-8 text-sm font-medium text-neutral-600">
             Showing {products.length} of {total} products
           </p>

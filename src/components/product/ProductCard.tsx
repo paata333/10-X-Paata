@@ -1,10 +1,14 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import type { AddItemResult } from '../../types/cart'
 import type { Product } from '../../types/product'
 import { discountedPrice, formatCategory, formatPrice } from '../../utils/format'
+import { Button } from '../ui/Button'
 import { StockBadge } from './StockBadge'
 
 interface ProductCardProps {
   product: Product
+  onAdd: (product: Product) => AddItemResult
 }
 
 const tileColors = [
@@ -16,13 +20,24 @@ const tileColors = [
   'bg-violet-200',
 ]
 
-export function ProductCard({ product }: ProductCardProps) {
+export function ProductCard({ product, onAdd }: ProductCardProps) {
+  const [feedback, setFeedback] = useState<AddItemResult | null>(null)
   const hasDiscount = product.discountPercentage >= 1
   const finalPrice = discountedPrice(product.price, product.discountPercentage)
   const tileColor = tileColors[product.id % tileColors.length]
   const categoryLine = product.brand
     ? `${formatCategory(product.category)} · ${product.brand}`
     : formatCategory(product.category)
+
+  useEffect(() => {
+    if (feedback === null) {
+      return
+    }
+    const timer = window.setTimeout(() => setFeedback(null), 3000)
+    return () => window.clearTimeout(timer)
+  }, [feedback])
+
+  const isOutOfStock = product.stock === 0
 
   return (
     <article className="group relative flex h-full flex-col overflow-hidden rounded-2xl border-2 border-neutral-950 bg-white shadow-[4px_4px_0_0_#0a0a0a] transition-all duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[7px_7px_0_0_#0a0a0a] motion-reduce:transition-none">
@@ -68,6 +83,25 @@ export function ProductCard({ product }: ProductCardProps) {
           <span className="font-bold">★ {product.rating.toFixed(1)}</span>
           <StockBadge stock={product.stock} />
         </div>
+        <Button
+          size="sm"
+          fullWidth
+          disabled={isOutOfStock}
+          onClick={() => setFeedback(onAdd(product))}
+          className="relative z-10 mt-1"
+        >
+          {isOutOfStock ? 'Out of stock' : 'Add to cart'}
+        </Button>
+        {feedback && (
+          <p
+            role="status"
+            className={`relative z-10 rounded-md border-2 border-neutral-950 px-2 py-1 text-xs font-semibold ${
+              feedback.added ? 'bg-green-200' : 'bg-orange-200'
+            }`}
+          >
+            {feedback.message}
+          </p>
+        )}
       </div>
     </article>
   )
