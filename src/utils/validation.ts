@@ -1,3 +1,4 @@
+import type { CheckoutFormErrors, CheckoutFormValues } from '../types/checkout'
 import type {
   LoginFormErrors,
   LoginFormValues,
@@ -61,6 +62,28 @@ export function validateSignUp(values: SignUpFormValues): SignUpFormErrors {
     errors.confirmPassword = 'Please confirm your password'
   } else if (values.confirmPassword !== values.password) {
     errors.confirmPassword = 'Passwords do not match'
+  }
+
+  return errors
+}
+
+export function validateCheckout(values: CheckoutFormValues): CheckoutFormErrors {
+  const errors: CheckoutFormErrors = {}
+
+  if (values.fullName.trim().length < 3) {
+    errors.fullName = 'Full name must be at least 3 characters'
+  }
+
+  if (!isValidEmail(values.email)) {
+    errors.email = 'Please enter a valid email address'
+  }
+
+  if (values.address.trim().length < 5) {
+    errors.address = 'Address must be at least 5 characters'
+  }
+
+  if (values.city.trim() === '') {
+    errors.city = 'City is required'
   }
 
   return errors
