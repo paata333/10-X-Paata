@@ -84,7 +84,7 @@ export function CartPage() {
             <button
               type="button"
               onClick={handleClear}
-              className="mt-6 text-sm font-bold text-neutral-700 underline decoration-2 underline-offset-4 hover:bg-red-100 hover:text-red-700"
+              className="mt-4 inline-flex min-h-11 items-center px-1 text-sm font-bold text-neutral-700 underline decoration-2 underline-offset-4 hover:bg-red-100 hover:text-red-700"
             >
               Clear cart
             </button>

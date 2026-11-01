@@ -74,7 +74,7 @@ export function ProductPage() {
       <button
         type="button"
         onClick={handleBack}
-        className="mb-6 text-sm font-bold underline decoration-2 underline-offset-4 hover:bg-lime-300"
+        className="mb-4 inline-flex min-h-11 items-center px-1 text-sm font-bold underline decoration-2 underline-offset-4 hover:bg-lime-300"
       >
         ← Back to catalog
       </button>

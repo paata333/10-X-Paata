@@ -29,17 +29,17 @@ export function CartItemRow({ item, onQuantityChange, onRemove }: CartItemRowPro
       </Link>
 
       <div className="min-w-0">
-        <h3 className="text-lg font-bold leading-tight">
+        <h2 className="text-lg font-bold leading-tight">
           <Link to={productUrl} className="hover:underline">
             {item.title}
           </Link>
-        </h3>
+        </h2>
         <p className="mt-1 text-sm text-neutral-600">{formatPrice(getUnitPrice(item))} each</p>
         <button
           type="button"
           onClick={() => onRemove(item.productId)}
           aria-label={`Remove ${item.title} from cart`}
-          className="mt-2 text-sm font-bold text-red-700 underline decoration-2 underline-offset-4 hover:bg-red-100"
+          className="-ml-1 mt-1 inline-flex min-h-11 items-center px-1 text-sm font-bold text-red-700 underline decoration-2 underline-offset-4 hover:bg-red-100"
         >
           Remove
         </button>
