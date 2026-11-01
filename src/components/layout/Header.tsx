@@ -17,7 +17,7 @@ function NavItem({ to, end, children }: NavItemProps) {
       to={to}
       end={end}
       className={({ isActive }) =>
-        `rounded-lg border-2 px-3 py-1.5 text-sm font-bold transition-colors motion-reduce:transition-none ${
+        `inline-flex min-h-11 items-center rounded-lg border-2 px-3 py-1.5 text-sm font-bold transition-colors motion-reduce:transition-none md:min-h-9 ${
           isActive
             ? 'border-lime-300 bg-lime-300 text-neutral-950'
             : 'border-transparent text-white hover:border-white/40'
@@ -47,7 +47,7 @@ export function Header() {
   return (
     <header className="border-b-2 border-neutral-950 bg-neutral-950 text-white">
       <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-6 gap-y-3 px-4 py-3 sm:px-6">
-        <Link to="/" className="flex items-center gap-2">
+        <Link to="/" className="flex min-h-11 items-center gap-2">
           <span
             data-display
             className="-rotate-3 rounded-md bg-lime-300 px-2 py-0.5 text-xl font-extrabold text-neutral-950"
@@ -63,11 +63,11 @@ export function Header() {
             Catalog
           </NavItem>
           <NavItem to="/cart">
-            Cart
+            Cart{' '}
             {itemCount > 0 && (
-              <span className="ml-1.5 rounded-full bg-orange-400 px-1.5 py-0.5 text-xs font-extrabold text-neutral-950">
-                {itemCount}
-                <span className="sr-only"> items in cart</span>
+              <span className="rounded-full bg-orange-400 px-1.5 py-0.5 text-xs font-extrabold text-neutral-950">
+                {itemCount}{' '}
+                <span className="sr-only">items in cart</span>
               </span>
             )}
           </NavItem>
