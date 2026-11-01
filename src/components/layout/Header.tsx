@@ -3,6 +3,7 @@ import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { Button } from '../ui/Button'
 import { buttonClasses } from '../ui/buttonStyles'
 import { useAuth } from '../../context/AuthContext'
+import { useCart } from '../../context/CartContext'
 
 interface NavItemProps {
   to: string
@@ -30,6 +31,7 @@ function NavItem({ to, end, children }: NavItemProps) {
 
 export function Header() {
   const { user, logout } = useAuth()
+  const { itemCount } = useCart()
   const navigate = useNavigate()
 
   const handleLogout = () => {
@@ -60,7 +62,15 @@ export function Header() {
           <NavItem to="/" end>
             Catalog
           </NavItem>
-          <NavItem to="/cart">Cart</NavItem>
+          <NavItem to="/cart">
+            Cart
+            {itemCount > 0 && (
+              <span className="ml-1.5 rounded-full bg-orange-400 px-1.5 py-0.5 text-xs font-extrabold text-neutral-950">
+                {itemCount}
+                <span className="sr-only"> items in cart</span>
+              </span>
+            )}
+          </NavItem>
           {user.isLoggedIn ? (
             <>
               <span className="ml-1 hidden items-center gap-2 text-sm font-semibold text-neutral-300 sm:inline-flex">
