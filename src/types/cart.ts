@@ -11,3 +11,8 @@ export interface CartItem {
 export interface CartState {
   items: CartItem[]
 }
+
+export interface AddItemResult {
+  added: boolean
+  message: string
+}
