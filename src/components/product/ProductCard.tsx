@@ -63,14 +63,14 @@ export function ProductCard({ product, onAdd }: ProductCardProps) {
         <p className="text-xs font-bold uppercase tracking-wider text-neutral-500">
           {categoryLine}
         </p>
-        <h3 className="line-clamp-2 text-lg font-bold leading-tight">
+        <h2 className="line-clamp-2 text-lg font-bold leading-tight">
           <Link
             to={`/products/${product.id}`}
             className="after:absolute after:inset-0 after:content-[''] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neutral-950"
           >
             {product.title}
           </Link>
-        </h3>
+        </h2>
         <div className="flex items-baseline gap-2">
           <span data-display className="text-2xl font-extrabold">
             {formatPrice(finalPrice)}
