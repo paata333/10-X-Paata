@@ -6,6 +6,7 @@ interface StatusMessageProps {
   variant: StatusVariant
   title: string
   children?: ReactNode
+  action?: ReactNode
 }
 
 const variantClasses: Record<StatusVariant, string> = {
@@ -14,7 +15,7 @@ const variantClasses: Record<StatusVariant, string> = {
   empty: 'bg-yellow-200',
 }
 
-export function StatusMessage({ variant, title, children }: StatusMessageProps) {
+export function StatusMessage({ variant, title, children, action }: StatusMessageProps) {
   return (
     <div
       role={variant === 'error' ? 'alert' : 'status'}
@@ -30,6 +31,7 @@ export function StatusMessage({ variant, title, children }: StatusMessageProps) 
         {title}
       </p>
       {children && <p className="max-w-md text-neutral-700">{children}</p>}
+      {action}
     </div>
   )
 }
