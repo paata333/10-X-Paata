@@ -3,6 +3,9 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { ApiError } from '../api/ApiError'
 import { fetchProduct } from '../api/products.api'
 import { ProductDetails } from '../components/product/ProductDetails'
+import { ProductDetailsSkeleton } from '../components/product/ProductDetailsSkeleton'
+import { RelatedProducts } from '../components/product/RelatedProducts'
+import { Button } from '../components/ui/Button'
 import { StatusMessage } from '../components/ui/StatusMessage'
 import type { Product } from '../types/product'
 import { NotFoundPage } from './NotFoundPage'
@@ -24,6 +27,7 @@ export function ProductPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isNotFound, setIsNotFound] = useState(false)
+  const [reloadKey, setReloadKey] = useState(0)
 
   useEffect(() => {
     if (productId === null) {
@@ -38,6 +42,9 @@ export function ProductPage() {
 
     fetchProduct(productId, controller.signal)
       .then((data) => {
+        if (controller.signal.aborted) {
+          return
+        }
         setProduct(data)
         setIsLoading(false)
       })
@@ -54,7 +61,7 @@ export function ProductPage() {
       })
 
     return () => controller.abort()
-  }, [productId])
+  }, [productId, reloadKey])
 
   if (productId === null || isNotFound) {
     return <NotFoundPage />
@@ -79,15 +86,28 @@ export function ProductPage() {
         ← Back to catalog
       </button>
 
-      {isLoading && <StatusMessage variant="loading" title="Loading product…" />}
+      {isLoading && <ProductDetailsSkeleton />}
 
       {error && (
-        <StatusMessage variant="error" title="Could not load this product">
-          {error}. Please check your connection and reload the page.
+        <StatusMessage
+          variant="error"
+          title="Could not load this product"
+          action={
+            <Button variant="dark" onClick={() => setReloadKey((key) => key + 1)}>
+              Retry
+            </Button>
+          }
+        >
+          {error}. Please check your connection and try again.
         </StatusMessage>
       )}
 
-      {product && <ProductDetails key={product.id} product={product} />}
+      {product && (
+        <>
+          <ProductDetails key={product.id} product={product} />
+          <RelatedProducts key={`related-${product.id}`} product={product} />
+        </>
+      )}
     </section>
   )
 }
