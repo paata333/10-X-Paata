@@ -1,7 +1,8 @@
 # REPORT — 10X Shop
 
-> Status: **CORE complete, FULL not started.** This is the first version of the report; the
-> FULL sections and the `TODO` cells are updated before submission.
+> Status: **CORE complete, FULL partly done** (catalog search / filter / sort / pagination /
+> URL state, product reviews, related products). The remaining FULL rows and the `TODO` cells
+> are updated before submission.
 
 ## 1. Planned vs delivered
 
@@ -17,8 +18,9 @@
 | Error Boundary and DEBUG-LOG | CORE | Done | `ErrorBoundary.tsx`, `DEBUG-LOG.md` |
 | Responsive 320px to desktop, 44px touch targets on mobile | CORE | Done | DEBUG-LOG entries 2 and 4 |
 | PLAN, README, REPORT, deploy config | CORE | Done, deploy link pending | `PLAN.md`, `README.md`, `vercel.json` |
-| Search, category filter, sort, pagination, URL state | FULL | Not done | – |
-| Reviews, related products | FULL | Not done | – |
+| Search, category filter, sort, pagination, URL state | FULL | Done | `CatalogPage`, `CatalogToolbar`, `Pagination`, `utils/catalogParams.ts`, `useDebounce` |
+| Reviews (form, `shop_reviews`, average), related products, tabs | FULL | Done | `ProductTabs`, `ReviewForm`, `useProductReviews`, `RelatedProducts` |
+| Loading skeletons and Retry on errors | FULL | Done | `ProductGridSkeleton`, `ProductDetailsSkeleton`, `StatusMessage` |
 | Reducer cart, `Cart` class, promo codes | FULL | Not done | – |
 | Orders and profile pages | FULL | Not done | – |
 | Formik + Yup login, advanced validation | FULL | Not done | – |
@@ -26,22 +28,22 @@
 | Route-level code splitting, Lighthouse targets | FULL | Not done | – |
 | OOP `ApiClient`, generics, type guards | FULL | Not done | – |
 
-Why FULL is not done yet: the project started on 26 October 2026, nine days after the official
-start, so the available time was spent on finishing CORE end to end first.
+Why part of FULL is still open: the project started on 26 October 2026, nine days after the
+official start, so CORE was finished first and FULL is added in order of value.
 
 ## 2. Metrics
 
 | Metric | Value |
 | --- | --- |
-| Production bundle (JS) | 292.95 kB, 90.33 kB gzip (target: ≤ 250 kB gzip) |
-| Production bundle (CSS) | 29.66 kB, 6.35 kB gzip |
+| Production bundle (JS) | 310.00 kB, 94.38 kB gzip (target: ≤ 250 kB gzip) |
+| Production bundle (CSS) | 31.48 kB, 6.63 kB gzip |
 | TypeScript / ESLint errors | 0 / 0 |
-| Source size | about 2,000 lines of TypeScript / TSX |
+| Source size | about 3,000 lines of TypeScript / TSX |
 | Commits | TODO: `git rev-list --count HEAD` |
 | Lighthouse (mobile) before → after | TODO: run on the deployed site and add `docs/lighthouse/before.png` and `after.png` |
 | Hours per epic, planned vs actual | planned: 43 h in `PLAN.md`; TODO: actual hours |
 
-## 3. The three hardest problems
+## 3. The hardest problems
 
 1. **Logout on the checkout page redirected to the login page.** Two dependent state updates
    (auth state and router location) were rendered at different times, and the route guard reacted
@@ -54,6 +56,12 @@ start, so the available time was spent on finishing CORE end to end first.
 3. **Layout at 320px.** A grid column grew wider than its container because of the minimum
    width of the inputs inside it. Found with a scripted measurement and fixed with
    `grid-cols-1` and `minmax(0, 1fr)`. See DEBUG-LOG entry 2.
+4. **Keeping the search box, the URL and the requests in sync.** The URL is the single source
+   of truth (`q`, `category`, `sort`, `page`), the input keeps its own text for fast typing, and
+   a debounce writes it to the URL. An effect that depended on a helper function re-applied an
+   old search text after a category change; an older, slower response must also never replace a
+   newer one. Solved with a ref for the last pushed value, an effect that depends only on the
+   debounced text, and `AbortController` plus an `aborted` check. See DEBUG-LOG entry 5.
 
 ## 4. What I would do differently
 
@@ -94,5 +102,8 @@ day at a time.
 | Context | `AuthContext` (`useAuth`), `CartContext` (`useCart`) |
 | `useEffect` dependencies | `CatalogPage` (`[]`), `ProductPage` (`[productId]`), `CartContext` (`[items]`), `CheckoutPage` (timer), `ScrollToTop` (`[pathname]`) |
 | Immutable state | `CartContext` (`map`, `filter`, spread), form handlers (`setValues(prev => ({ ...prev }))`) |
+| Custom hooks | `useDebounce` (generic), `useProductReviews` |
+| `useRef`, `useMemo`, `useCallback` | `CatalogPage` (last pushed query), `useProductReviews` (merged reviews, average), `CartContext` (stable actions) |
+| URL state | `useSearchParams` in `CatalogPage`, parsing and validation in `utils/catalogParams.ts` |
 | Controlled forms | `LoginPage`, `SignUpPage`, `CheckoutPage` with `FormField` |
 | Routing | `AppRoutes`, `useParams`, `useNavigate`, `Navigate` with router state, `NavLink` |
