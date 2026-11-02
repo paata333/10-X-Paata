@@ -17,7 +17,7 @@ function NavItem({ to, end, children }: NavItemProps) {
       to={to}
       end={end}
       className={({ isActive }) =>
-        `inline-flex min-h-11 items-center rounded-lg border-2 px-3 py-1.5 text-sm font-bold transition-colors motion-reduce:transition-none md:min-h-9 ${
+        `inline-flex min-h-11 items-center rounded-lg border-2 px-3 py-1.5 text-sm font-bold transition-colors motion-reduce:transition-none lg:min-h-9 ${
           isActive
             ? 'border-lime-300 bg-lime-300 text-neutral-950'
             : 'border-transparent text-white hover:border-white/40'
