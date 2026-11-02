@@ -29,9 +29,20 @@ complete a checkout. Built with React, TypeScript (strict) and Tailwind CSS v4.
   on mobile, visible focus styles, labelled form fields, `alt` on images, Error Boundary with a
   "Something went wrong." fallback and a Reload button, 404 page.
 
-**FULL (not implemented yet)** – search, category filter, sorting, pagination and URL state;
-reviews and related products; reducer-based cart, promo codes; orders and profile pages;
-Formik + Yup login; dark mode and `@theme` tokens; route-level code splitting.
+**FULL (implemented so far)**
+
+- **Catalog search, filter, sort and pagination** – debounced search (400 ms), category filter,
+  four sort orders and numbered pagination. All of it lives in the URL (`?q=`, `?category=`,
+  `?sort=`, `?page=`), so refresh, Back / Forward and shared links restore the same view. Search
+  and category exclude each other, any change resets the page to 1, outdated responses are
+  ignored, and the page shows skeleton cards while loading and a Retry button on errors.
+- **Product reviews** – description / reviews tabs, star rating form with validation, reviews
+  saved in `localStorage` (`shop_reviews`) and shown above the ones from the API, average rating
+  and review count.
+- **Related products** – up to four products from the same category with the same card.
+
+**FULL (not implemented yet)** – reducer-based cart and promo codes; orders and profile pages;
+Formik + Yup login; dark mode and `@theme` tokens; toasts; route-level code splitting.
 
 ## Tech Stack
 
@@ -49,11 +60,14 @@ src/
 ├── api/            fetch functions and ApiError (products.api.ts)
 ├── components/
 │   ├── cart/       CartItemRow, CartSummary
+│   ├── catalog/    CatalogToolbar
 │   ├── checkout/   OrderItemsList, OrderConfirmation
 │   ├── layout/     Layout, Header, Footer, ScrollToTop
-│   ├── product/    ProductCard, ProductGrid, ProductDetails, StockBadge
-│   └── ui/         Button, FormField, Page, QuantityStepper, StatusMessage
+│   ├── product/    ProductCard, ProductGrid, ProductDetails, ProductTabs, ReviewForm,
+│   │               ReviewList, RelatedProducts, skeletons, StockBadge, StarRating
+│   └── ui/         Button, FormField, Page, Pagination, QuantityStepper, StatusMessage
 ├── context/        AuthContext, CartContext
+├── hooks/          useDebounce, useProductReviews
 ├── pages/          Catalog, Product, Cart, Checkout, Login, SignUp, NotFound
 ├── routes/         AppRoutes, ProtectedRoute
 ├── types/          Product, CartItem, AuthUser, form value and error types
@@ -61,7 +75,8 @@ src/
 ```
 
 **Data flow.** Pages fetch data in `useEffect` through the functions in `src/api` (with an
-`AbortController`) and keep `loading`, `error` and `data` in local state. Shared state lives in
+`AbortController`) and keep `loading`, `error` and `data` in local state. On the catalog page
+the URL search params are the single source of truth for search, category, sort and page. Shared state lives in
 two React Contexts: `AuthContext` (who is signed in) and `CartContext` (cart items; every change
 is immutable and is mirrored to `localStorage`). Totals and the header badge are derived from
 `items` on every render instead of being stored. `ProtectedRoute` guards `/checkout` and passes
@@ -102,7 +117,6 @@ For example: **emilys** / **emilyspass**.
 
 ## Known Limitations
 
-- The catalog shows the first 12 of 194 products (pagination is a FULL feature).
 - Orders are not saved: the confirmation exists only until the page is reloaded.
 - Authentication is simulated and not persisted.
 
