@@ -1,4 +1,5 @@
 import type { CheckoutFormErrors, CheckoutFormValues } from '../types/checkout'
+import type { ReviewFormErrors, ReviewFormValues } from '../types/product'
 import type {
   LoginFormErrors,
   LoginFormValues,
@@ -84,6 +85,20 @@ export function validateCheckout(values: CheckoutFormValues): CheckoutFormErrors
 
   if (values.city.trim() === '') {
     errors.city = 'City is required'
+  }
+
+  return errors
+}
+
+export function validateReview(values: ReviewFormValues): ReviewFormErrors {
+  const errors: ReviewFormErrors = {}
+
+  if (!Number.isInteger(values.rating) || values.rating < 1 || values.rating > 5) {
+    errors.rating = 'Please select a rating'
+  }
+
+  if (values.comment.trim().length < 10) {
+    errors.comment = 'Comment must be at least 10 characters'
   }
 
   return errors
