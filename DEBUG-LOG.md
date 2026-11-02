@@ -115,3 +115,36 @@ Commits: `<sha>` – `fix(a11y): 44px touch targets and visible focus outline in
 
 **What I learned.** Automated tools miss some problems (contrast over images), so calculate those
 by hand; heading levels describe structure, not font size.
+
+A later run of the same audit found two more cases that were fixed the same way: the
+"Write a review" title was an `h3` directly under the page `h1`, and the compact 36px buttons
+started at 768px (tablets are touch devices), so they now start at 1024px.
+Commits: `<sha>` – `feat(reviews): add ReviewForm with validation`,
+`<sha>` – `fix(a11y): keep 44px touch targets on tablets, compact buttons only from 1024px`.
+
+---
+
+## 5. Choosing a category brought the old search text back
+
+**Symptom.** On the catalog, after typing a search and then choosing a category, the URL sometimes
+jumped back to `?q=...` a moment later and the category filter was lost.
+
+**Reproduction.** Open `/?q=item&page=2`, choose a category in the dropdown, then choose
+"All categories" again within a second or so.
+
+**Tool.** An automated behaviour test (`window.location.search` was `?q=item` while `''` was
+expected) and then reading the effect that writes the search text into the URL.
+
+**Root cause.** The effect that copies the debounced search text into the URL listed
+`setSearchParams` in its dependencies. That function changes every time the URL changes, so after
+each URL change the effect ran again with the still-old debounced text (`item`) and wrote it
+back.
+
+**Fix.** The effect now depends only on `debouncedText`; the newest `sort` and `setSearchParams`
+are read from a ref. A ref also remembers the last value pushed to the URL, so the input and the
+URL stay in sync after Back / Forward without a loop.
+Commit: `<sha>` – `feat(catalog): search, category, sort and pagination driven by URL params`.
+
+**What I learned.** An effect that writes state should run because of the change it reacts to,
+not because one of its helper functions got a new identity. Debounced values can be stale for a
+moment, so any other trigger must not read them.
