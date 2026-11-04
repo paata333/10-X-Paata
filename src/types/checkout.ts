@@ -1,5 +1,3 @@
-import type { CartItem } from './cart'
-
 export interface CheckoutFormValues {
   fullName: string
   email: string
@@ -12,10 +10,4 @@ export interface CheckoutFormErrors {
   email?: string
   address?: string
   city?: string
-}
-
-export interface OrderSummary {
-  items: CartItem[]
-  total: number
-  customer: CheckoutFormValues
 }

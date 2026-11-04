@@ -1,13 +1,16 @@
 import type { CartItem } from '../../types/cart'
+import type { OrderTotals } from '../../types/order'
 import { getLineTotal } from '../../utils/cart'
 import { formatPrice } from '../../utils/format'
+import { TotalsList } from '../ui/TotalsList'
 
 interface OrderItemsListProps {
   items: CartItem[]
-  total: number
+  totals: OrderTotals
+  promoLabel?: string
 }
 
-export function OrderItemsList({ items, total }: OrderItemsListProps) {
+export function OrderItemsList({ items, totals, promoLabel }: OrderItemsListProps) {
   return (
     <div>
       <ul className="divide-y-2 divide-dashed divide-neutral-950/25">
@@ -28,11 +31,14 @@ export function OrderItemsList({ items, total }: OrderItemsListProps) {
           </li>
         ))}
       </ul>
-      <div className="mt-2 flex items-baseline justify-between border-t-2 border-neutral-950 pt-4">
-        <span className="font-bold">Total</span>
-        <span data-display className="text-3xl font-extrabold">
-          {formatPrice(total)}
-        </span>
+      <div className="mt-2 border-t-2 border-neutral-950 pt-4">
+        <TotalsList
+          subtotal={totals.subtotal}
+          discount={totals.discount}
+          shipping={totals.shippingCost}
+          total={totals.total}
+          promoLabel={promoLabel}
+        />
       </div>
     </div>
   )

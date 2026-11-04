@@ -4,22 +4,31 @@ import {
   useContext,
   useEffect,
   useMemo,
-  useState,
+  useReducer,
   type ReactNode,
 } from 'react'
-import type { AddItemResult, CartItem } from '../types/cart'
-import type { Product } from '../types/product'
-import { getItemCount, getSubtotal } from '../utils/cart'
-import { loadCartItems, saveCartItems } from '../utils/storage'
+import { Cart } from '../models/Cart'
+import type { AddItemResult, CartItem, CartProduct } from '../types/cart'
+import { loadCartState, saveCartState } from '../utils/storage'
+import { cartReducer, getAddError } from './cart.reducer'
+
+interface ReorderEntry {
+  product: CartProduct
+  qty: number
+}
 
 interface CartContextValue {
   items: CartItem[]
+  promoCode: string | null
+  cart: Cart
   itemCount: number
-  subtotal: number
-  addItem: (product: Product, quantity: number) => AddItemResult
+  addItem: (product: CartProduct, quantity: number) => AddItemResult
+  addItems: (entries: ReorderEntry[]) => { added: number; skipped: number }
   setQuantity: (productId: number, quantity: number) => void
   removeItem: (productId: number) => void
   clearCart: () => void
+  applyPromo: (code: string) => boolean
+  removePromo: () => void
 }
 
 const CartContext = createContext<CartContextValue | undefined>(undefined)
@@ -29,87 +38,88 @@ interface CartProviderProps {
 }
 
 export function CartProvider({ children }: CartProviderProps) {
-  const [items, setItems] = useState<CartItem[]>(loadCartItems)
+  const [state, dispatch] = useReducer(cartReducer, undefined, loadCartState)
 
   useEffect(() => {
-    saveCartItems(items)
-  }, [items])
+    saveCartState(state)
+  }, [state])
 
   const addItem = useCallback(
-    (product: Product, quantity: number): AddItemResult => {
-      if (!Number.isInteger(quantity) || quantity < 1) {
-        return { added: false, message: 'Quantity must be at least 1' }
+    (product: CartProduct, quantity: number): AddItemResult => {
+      const error = getAddError(state.items, product, quantity)
+      if (error !== null) {
+        return { added: false, message: error }
       }
-      if (product.stock === 0) {
-        return { added: false, message: 'This product is out of stock' }
-      }
-
-      const existing = items.find((item) => item.productId === product.id)
-      const inCart = existing ? existing.quantity : 0
-
-      if (inCart + quantity > product.stock) {
-        const message =
-          inCart > 0
-            ? `Only ${product.stock} in stock. You already have ${inCart} in your cart.`
-            : `Only ${product.stock} in stock.`
-        return { added: false, message }
-      }
-
-      if (existing) {
-        setItems((prev) =>
-          prev.map((item) =>
-            item.productId === product.id
-              ? { ...item, quantity: item.quantity + quantity }
-              : item,
-          ),
-        )
-      } else {
-        const newItem: CartItem = {
-          productId: product.id,
-          title: product.title,
-          thumbnail: product.thumbnail,
-          price: product.price,
-          discountPercentage: product.discountPercentage,
-          stock: product.stock,
-          quantity,
-        }
-        setItems((prev) => [...prev, newItem])
-      }
-
+      dispatch({ type: 'ADD_ITEM', product, qty: quantity })
       return { added: true, message: 'Added to cart ✓' }
     },
-    [items],
+    [state.items],
+  )
+
+  // Adds several products at once (reorder). Each one is checked against the running contents.
+  const addItems = useCallback(
+    (entries: ReorderEntry[]) => {
+      let working = state.items
+      let added = 0
+      let skipped = 0
+
+      for (const { product, qty } of entries) {
+        if (getAddError(working, product, qty) !== null) {
+          skipped += 1
+          continue
+        }
+        const action = { type: 'ADD_ITEM', product, qty } as const
+        working = cartReducer({ items: working, promoCode: null }, action).items
+        dispatch(action)
+        added += 1
+      }
+
+      return { added, skipped }
+    },
+    [state.items],
   )
 
   const setQuantity = useCallback((productId: number, quantity: number) => {
-    setItems((prev) =>
-      prev.map((item) =>
-        item.productId === productId
-          ? { ...item, quantity: Math.min(Math.max(quantity, 1), item.stock) }
-          : item,
-      ),
-    )
+    dispatch({ type: 'SET_QTY', productId, qty: quantity })
   }, [])
 
   const removeItem = useCallback((productId: number) => {
-    setItems((prev) => prev.filter((item) => item.productId !== productId))
+    dispatch({ type: 'REMOVE_ITEM', productId })
   }, [])
 
   const clearCart = useCallback(() => {
-    setItems([])
+    dispatch({ type: 'CLEAR' })
   }, [])
+
+  const applyPromo = useCallback((code: string): boolean => {
+    if (!Cart.isValidPromo(code)) {
+      return false
+    }
+    dispatch({ type: 'APPLY_PROMO', code })
+    return true
+  }, [])
+
+  const removePromo = useCallback(() => {
+    dispatch({ type: 'REMOVE_PROMO' })
+  }, [])
+
+  const cart = useMemo(() => new Cart(state.items, state.promoCode), [state])
 
   const value = useMemo<CartContextValue>(
     () => ({
-      items,
-      itemCount: getItemCount(items),
-      subtotal: getSubtotal(items),
+      items: state.items,
+      promoCode: state.promoCode,
+      cart,
+      itemCount: cart.itemCount,
       addItem,
+      addItems,
       setQuantity,
       removeItem,
       clearCart,
+      applyPromo,
+      removePromo,
     }),
-    [items, addItem, setQuantity, removeItem, clearCart],
+    [state, cart, addItem, addItems, setQuantity, removeItem, clearCart, applyPromo, removePromo],
   )
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>

@@ -1,22 +1,20 @@
 import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react'
 import { Navigate } from 'react-router-dom'
-import { OrderConfirmation } from '../components/checkout/OrderConfirmation'
 import { OrderItemsList } from '../components/checkout/OrderItemsList'
 import { Button } from '../components/ui/Button'
 import { FormField } from '../components/ui/FormField'
 import { Page } from '../components/ui/Page'
 import { useCart } from '../context/CartContext'
-import type {
-  CheckoutFormErrors,
-  CheckoutFormValues,
-  OrderSummary,
-} from '../types/checkout'
+import { Cart } from '../models/Cart'
+import { Order } from '../models/Order'
+import type { CheckoutFormErrors, CheckoutFormValues } from '../types/checkout'
+import { loadOrders, saveOrders } from '../utils/storage'
 import { validateCheckout } from '../utils/validation'
 
 const ORDER_PROCESSING_MS = 700
 
 export function CheckoutPage() {
-  const { items, subtotal, clearCart } = useCart()
+  const { cart, clearCart } = useCart()
   const [values, setValues] = useState<CheckoutFormValues>({
     fullName: '',
     email: '',
@@ -25,7 +23,7 @@ export function CheckoutPage() {
   })
   const [errors, setErrors] = useState<CheckoutFormErrors>({})
   const [isPlacingOrder, setIsPlacingOrder] = useState(false)
-  const [order, setOrder] = useState<OrderSummary | null>(null)
+  const [placedOrderId, setPlacedOrderId] = useState<number | null>(null)
 
   useEffect(() => {
     if (!isPlacingOrder) {
@@ -33,19 +31,23 @@ export function CheckoutPage() {
     }
 
     const timer = window.setTimeout(() => {
-      setOrder({ items, total: subtotal, customer: values })
+      const existingOrders = loadOrders()
+      const order = Order.create(cart, values, existingOrders)
+      saveOrders([...existingOrders, order.toJSON()])
+      setPlacedOrderId(order.id)
       clearCart()
       setIsPlacingOrder(false)
     }, ORDER_PROCESSING_MS)
 
     return () => window.clearTimeout(timer)
-  }, [isPlacingOrder, items, subtotal, values, clearCart])
+  }, [isPlacingOrder, cart, values, clearCart])
 
-  if (order) {
-    return <OrderConfirmation order={order} />
+  // The order exists now: go to its page (checked before the empty-cart redirect below).
+  if (placedOrderId !== null) {
+    return <Navigate to={`/orders/${placedOrderId}`} replace state={{ justPlaced: true }} />
   }
 
-  if (items.length === 0) {
+  if (cart.isEmpty) {
     return (
       <Navigate
         to="/cart"
@@ -130,7 +132,16 @@ export function CheckoutPage() {
           className="h-fit rounded-2xl border-2 border-neutral-950 bg-lime-300 p-5 shadow-[6px_6px_0_0_#0a0a0a] lg:sticky lg:top-6"
         >
           <h2 className="mb-2 text-2xl font-extrabold tracking-tight">Your order</h2>
-          <OrderItemsList items={items} total={subtotal} />
+          <OrderItemsList
+            items={cart.lines}
+            totals={{
+              subtotal: cart.subtotal(),
+              discount: cart.discount(),
+              shippingCost: cart.shipping(),
+              total: cart.total(),
+            }}
+            promoLabel={`Discount (${Cart.PROMO_CODE} −${Math.round(Cart.PROMO_RATE * 100)}%)`}
+          />
         </aside>
       </div>
     </Page>

@@ -1,10 +1,10 @@
-import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { CartItemRow } from '../components/cart/CartItemRow'
 import { CartSummary } from '../components/cart/CartSummary'
 import { buttonClasses } from '../components/ui/buttonStyles'
 import { Page } from '../components/ui/Page'
 import { useCart } from '../context/CartContext'
+import { useToast } from '../context/ToastContext'
 
 function getNotice(state: unknown): string | null {
   if (
@@ -19,20 +19,28 @@ function getNotice(state: unknown): string | null {
 }
 
 export function CartPage() {
-  const { items, itemCount, subtotal, setQuantity, removeItem, clearCart } = useCart()
+  const {
+    items,
+    itemCount,
+    cart,
+    promoCode,
+    setQuantity,
+    removeItem,
+    clearCart,
+    applyPromo,
+    removePromo,
+  } = useCart()
+  const { showToast } = useToast()
   const location = useLocation()
-  const [removedTitle, setRemovedTitle] = useState<string | null>(null)
   const redirectNotice = getNotice(location.state)
 
   const handleRemove = (productId: number) => {
-    const item = items.find((cartItem) => cartItem.productId === productId)
-    setRemovedTitle(item ? item.title : null)
     removeItem(productId)
+    showToast('Removed from cart')
   }
 
   const handleClear = () => {
     if (window.confirm('Clear the cart? This cannot be undone.')) {
-      setRemovedTitle(null)
       clearCart()
     }
   }
@@ -45,15 +53,6 @@ export function CartPage() {
           className="mb-6 rounded-lg border-2 border-neutral-950 bg-yellow-200 px-4 py-3 text-sm font-semibold"
         >
           {redirectNotice}
-        </p>
-      )}
-
-      {removedTitle && (
-        <p
-          role="status"
-          className="mb-6 rounded-lg border-2 border-neutral-950 bg-white px-4 py-3 text-sm font-semibold"
-        >
-          Removed from cart: {removedTitle}
         </p>
       )}
 
@@ -89,7 +88,12 @@ export function CartPage() {
               Clear cart
             </button>
           </div>
-          <CartSummary itemCount={itemCount} subtotal={subtotal} />
+          <CartSummary
+            cart={cart}
+            promoCode={promoCode}
+            onApplyPromo={applyPromo}
+            onRemovePromo={removePromo}
+          />
         </div>
       )}
     </Page>
