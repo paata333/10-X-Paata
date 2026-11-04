@@ -1,8 +1,8 @@
 # REPORT — 10X Shop
 
-> Status: **CORE complete, FULL partly done** (catalog search / filter / sort / pagination /
-> URL state, product reviews, related products). The remaining FULL rows and the `TODO` cells
-> are updated before submission.
+> Status: **CORE complete, most of FULL done** (catalog search / filter / sort / pagination / URL
+> state, reviews, related products, reducer cart with promo and shipping, orders, profile, toasts).
+> The remaining FULL rows and the `TODO` cells are updated before submission.
 
 ## 1. Planned vs delivered
 
@@ -21,24 +21,29 @@
 | Search, category filter, sort, pagination, URL state | FULL | Done | `CatalogPage`, `CatalogToolbar`, `Pagination`, `utils/catalogParams.ts`, `useDebounce` |
 | Reviews (form, `shop_reviews`, average), related products, tabs | FULL | Done | `ProductTabs`, `ReviewForm`, `useProductReviews`, `RelatedProducts` |
 | Loading skeletons and Retry on errors | FULL | Done | `ProductGridSkeleton`, `ProductDetailsSkeleton`, `StatusMessage` |
-| Reducer cart, `Cart` class, promo codes | FULL | Not done | – |
-| Orders and profile pages | FULL | Not done | – |
+| Reducer cart, `Cart` class, promo code, shipping rule | FULL | Done | `cart.reducer.ts`, `models/Cart.ts`, `CartContext`, `PromoCodeForm` |
+| Orders (list, details, status over time, reorder) | FULL | Done | `models/Order.ts`, `utils/orders.ts`, `OrdersPage`, `OrderDetailsPage` |
+| Profile page, clear local data | FULL | Done | `ProfilePage`, `AuthContext`, `utils/storage.ts` |
+| Toast notifications | FULL | Done | `ToastContext`, `ToastViewport` |
+| OOP: `Cart`, `Order`, generic `StorageService<T>` | FULL | Done | `src/models` |
 | Formik + Yup login, advanced validation | FULL | Not done | – |
 | Dark mode, `@theme` tokens | FULL | Not done | – |
 | Route-level code splitting, Lighthouse targets | FULL | Not done | – |
-| OOP `ApiClient`, generics, type guards | FULL | Not done | – |
+| OOP `ApiClient`, generic `useFetch` | FULL | Not done | – |
+| Type guards and utility types (`Pick`, `Required`, `Partial`) | FULL | Partly done | `utils/storage.ts`, `types/cart.ts`, `types/user.ts` |
 
 Why part of FULL is still open: the project started on 26 October 2026, nine days after the
-official start, so CORE was finished first and FULL is added in order of value.
+official start, so CORE was finished first and FULL is added in order of value. Not done yet:
+Formik + Yup, dark mode with `@theme`, lazy routes, `ApiClient` / `useFetch`, Lighthouse targets.
 
 ## 2. Metrics
 
 | Metric | Value |
 | --- | --- |
-| Production bundle (JS) | 310.00 kB, 94.38 kB gzip (target: ≤ 250 kB gzip) |
-| Production bundle (CSS) | 31.48 kB, 6.63 kB gzip |
+| Production bundle (JS) | 327.74 kB, 98.37 kB gzip (target: ≤ 250 kB gzip) |
+| Production bundle (CSS) | 32.75 kB, 6.87 kB gzip |
 | TypeScript / ESLint errors | 0 / 0 |
-| Source size | about 3,000 lines of TypeScript / TSX |
+| Source size | about 4,200 lines of TypeScript / TSX |
 | Commits | TODO: `git rev-list --count HEAD` |
 | Lighthouse (mobile) before → after | TODO: run on the deployed site and add `docs/lighthouse/before.png` and `after.png` |
 | Hours per epic, planned vs actual | planned: 43 h in `PLAN.md`; TODO: actual hours |
@@ -62,6 +67,11 @@ official start, so CORE was finished first and FULL is added in order of value.
    old search text after a category change; an older, slower response must also never replace a
    newer one. Solved with a ref for the last pushed value, an effect that depends only on the
    debounced text, and `AbortController` plus an `aborted` check. See DEBUG-LOG entry 5.
+5. **Placing an order without a redirect race.** After an order the cart is emptied, but the
+   checkout page redirects to the cart when it is empty. If both happened as separate updates the
+   user could land on the cart instead of the order. The page now remembers the new order id and
+   renders `<Navigate>` to the order first, so the empty-cart redirect can never win. The status
+   of an order is never stored: it is calculated from the time, so it cannot become out of date.
 
 ## 4. What I would do differently
 
@@ -99,10 +109,13 @@ day at a time.
 | Callback props | `onAdd` (`ProductGrid` → `ProductCard`), `onQuantityChange` / `onRemove` (`CartItemRow`), `onChange` (`FormField`) |
 | `map` and `key` | `ProductGrid`, the item list in `CartPage`, `OrderItemsList` |
 | Conditional rendering | loading / error / empty / data in `CatalogPage`; guest vs signed-in `Header`; `CheckoutPage` (order, empty cart, form) |
-| Context | `AuthContext` (`useAuth`), `CartContext` (`useCart`) |
+| Context | `AuthContext` (`useAuth`), `CartContext` (`useCart`), `ToastContext` (`useToast`) |
 | `useEffect` dependencies | `CatalogPage` (`[]`), `ProductPage` (`[productId]`), `CartContext` (`[items]`), `CheckoutPage` (timer), `ScrollToTop` (`[pathname]`) |
 | Immutable state | `CartContext` (`map`, `filter`, spread), form handlers (`setValues(prev => ({ ...prev }))`) |
-| Custom hooks | `useDebounce` (generic), `useProductReviews` |
+| Custom hooks | `useDebounce` (generic), `useProductReviews`, `useNow` (interval with cleanup), `useLogout` |
+| `useReducer` and discriminated unions | `cart.reducer.ts`: `CartAction` union, `switch` with a `never` check, pure and tested without React |
+| Classes and generics | `Cart` (implements `ICart`), `Order` (private constructor, factory), `StorageService<T>` |
+| Type guards and utility types | `isCartItem`, `isOrderData` in `storage.ts`; `Pick`, `Required`, `Partial` in `types/` |
 | `useRef`, `useMemo`, `useCallback` | `CatalogPage` (last pushed query), `useProductReviews` (merged reviews, average), `CartContext` (stable actions) |
 | URL state | `useSearchParams` in `CatalogPage`, parsing and validation in `utils/catalogParams.ts` |
 | Controlled forms | `LoginPage`, `SignUpPage`, `CheckoutPage` with `FormField` |
