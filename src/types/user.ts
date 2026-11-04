@@ -1,6 +1,10 @@
 export interface AuthUser {
   username: string
   isLoggedIn: boolean
+  firstName?: string
+  lastName?: string
+  email?: string
+  phone?: string
 }
 
 export interface LoginFormValues {
@@ -26,3 +30,9 @@ export interface SignUpFormErrors {
   password?: string
   confirmPassword?: string
 }
+
+export type ProfileFormValues = Required<
+  Pick<AuthUser, 'firstName' | 'lastName' | 'email' | 'phone'>
+>
+
+export type ProfileFormErrors = Partial<ProfileFormValues>
