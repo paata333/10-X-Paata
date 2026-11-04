@@ -122,6 +122,15 @@ started at 768px (tablets are touch devices), so they now start at 1024px.
 Commits: `<sha>` – `feat(reviews): add ReviewForm with validation`,
 `<sha>` – `fix(a11y): keep 44px touch targets on tablets, compact buttons only from 1024px`.
 
+The audit also found the product links in the order details table, which were 20px tall because a
+table cell is not "text in a paragraph". Commit: `<sha>` –
+`feat(pages): add Order details page with timeline, items table and Reorder`.
+
+One warning was a **false alarm**: right after a page change axe reported low contrast on the
+header "Cart" link. The link was in the middle of its `transition-colors` animation (dark text on
+a fading green background). Measuring again after the animation finished showed no problem, so
+nothing was changed. Lesson: wait for animations to end before trusting a contrast measurement.
+
 ---
 
 ## 5. Choosing a category brought the old search text back
