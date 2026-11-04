@@ -1,10 +1,11 @@
 import { createContext, useContext, useState, type ReactNode } from 'react'
-import type { AuthUser } from '../types/user'
+import type { AuthUser, ProfileFormValues } from '../types/user'
 
 interface AuthContextValue {
   user: AuthUser
   login: (username: string) => void
   logout: () => void
+  updateProfile: (values: ProfileFormValues) => void
 }
 
 const guestUser: AuthUser = { username: '', isLoggedIn: false }
@@ -26,8 +27,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setUser(guestUser)
   }
 
+  const updateProfile = (values: ProfileFormValues) => {
+    setUser((prev) => ({ ...prev, ...values }))
+  }
+
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, logout, updateProfile }}>
       {children}
     </AuthContext.Provider>
   )
