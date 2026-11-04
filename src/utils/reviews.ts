@@ -12,11 +12,3 @@ export function getAverageRating(reviews: Review[]): number {
 export function mergeReviews(local: Review[], remote: Review[] | undefined): Review[] {
   return [...local, ...(remote ?? [])]
 }
-
-export function formatReviewDate(isoDate: string): string {
-  const date = new Date(isoDate)
-  if (Number.isNaN(date.getTime())) {
-    return ''
-  }
-  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
-}

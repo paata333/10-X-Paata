@@ -1,5 +1,5 @@
 import type { Review } from '../../types/product'
-import { formatReviewDate } from '../../utils/reviews'
+import { formatDate } from '../../utils/format'
 import { StarDisplay } from './StarRating'
 
 interface ReviewListProps {
@@ -26,7 +26,7 @@ export function ReviewList({ reviews }: ReviewListProps) {
             <p className="font-bold">{review.reviewerName}</p>
             <StarDisplay rating={review.rating} />
             <time dateTime={review.date} className="text-sm text-neutral-600">
-              {formatReviewDate(review.date)}
+              {formatDate(review.date)}
             </time>
           </div>
           <p className="mt-2 text-neutral-800">{review.comment}</p>
