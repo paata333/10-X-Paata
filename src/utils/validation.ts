@@ -3,6 +3,8 @@ import type { ReviewFormErrors, ReviewFormValues } from '../types/product'
 import type {
   LoginFormErrors,
   LoginFormValues,
+  ProfileFormErrors,
+  ProfileFormValues,
   SignUpFormErrors,
   SignUpFormValues,
 } from '../types/user'
@@ -99,6 +101,32 @@ export function validateReview(values: ReviewFormValues): ReviewFormErrors {
 
   if (values.comment.trim().length < 10) {
     errors.comment = 'Comment must be at least 10 characters'
+  }
+
+  return errors
+}
+
+const PHONE_PATTERN = /^\+?\d{9,15}$/
+
+export function validateProfile(values: ProfileFormValues): ProfileFormErrors {
+  const errors: ProfileFormErrors = {}
+
+  if (values.firstName.trim().length < 2) {
+    errors.firstName = 'First name must be at least 2 characters'
+  }
+
+  if (values.lastName.trim().length < 2) {
+    errors.lastName = 'Last name must be at least 2 characters'
+  }
+
+  if (!isValidEmail(values.email)) {
+    errors.email = 'Please enter a valid email address'
+  }
+
+  // The phone number is optional; spaces, dashes and brackets are ignored.
+  const phone = values.phone.replace(/[\s()-]/g, '')
+  if (phone !== '' && !PHONE_PATTERN.test(phone)) {
+    errors.phone = 'Please enter a valid phone number'
   }
 
   return errors
