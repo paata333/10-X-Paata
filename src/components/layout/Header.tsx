@@ -1,9 +1,10 @@
-import { startTransition, type ReactNode } from 'react'
-import { Link, NavLink, useNavigate } from 'react-router-dom'
+import type { ReactNode } from 'react'
+import { Link, NavLink } from 'react-router-dom'
 import { Button } from '../ui/Button'
 import { buttonClasses } from '../ui/buttonStyles'
 import { useAuth } from '../../context/AuthContext'
 import { useCart } from '../../context/CartContext'
+import { useLogout } from '../../hooks/useLogout'
 
 interface NavItemProps {
   to: string
@@ -30,19 +31,10 @@ function NavItem({ to, end, children }: NavItemProps) {
 }
 
 export function Header() {
-  const { user, logout } = useAuth()
+  const { user } = useAuth()
   const { itemCount } = useCart()
-  const navigate = useNavigate()
-
-  const handleLogout = () => {
-    // React Router updates the location inside a transition. Doing the same for
-    // logout keeps both updates in one render, so ProtectedRoute never sees a
-    // guest on /checkout and does not redirect to /login.
-    startTransition(() => {
-      logout()
-      navigate('/')
-    })
-  }
+  const handleLogout = useLogout()
+  const displayName = user.firstName || user.username
 
   return (
     <header className="border-b-2 border-neutral-950 bg-neutral-950 text-white">
@@ -73,9 +65,11 @@ export function Header() {
           </NavItem>
           {user.isLoggedIn ? (
             <>
+              <NavItem to="/orders">Orders</NavItem>
+              <NavItem to="/profile">Profile</NavItem>
               <span className="ml-1 hidden items-center gap-2 text-sm font-semibold text-neutral-300 sm:inline-flex">
                 <span aria-hidden="true" className="size-2 rounded-full bg-lime-300" />
-                {user.username}
+                {displayName}
               </span>
               <Button variant="outline" size="sm" onClick={handleLogout}>
                 Log out
