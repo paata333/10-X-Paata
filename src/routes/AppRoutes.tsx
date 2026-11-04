@@ -5,7 +5,10 @@ import { CatalogPage } from '../pages/CatalogPage'
 import { CheckoutPage } from '../pages/CheckoutPage'
 import { LoginPage } from '../pages/LoginPage'
 import { NotFoundPage } from '../pages/NotFoundPage'
+import { OrderDetailsPage } from '../pages/OrderDetailsPage'
+import { OrdersPage } from '../pages/OrdersPage'
 import { ProductPage } from '../pages/ProductPage'
+import { ProfilePage } from '../pages/ProfilePage'
 import { SignUpPage } from '../pages/SignUpPage'
 import { ProtectedRoute } from './ProtectedRoute'
 
@@ -23,6 +26,30 @@ export function AppRoutes() {
           element={
             <ProtectedRoute>
               <CheckoutPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="orders"
+          element={
+            <ProtectedRoute>
+              <OrdersPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="orders/:id"
+          element={
+            <ProtectedRoute>
+              <OrderDetailsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="profile"
+          element={
+            <ProtectedRoute>
+              <ProfilePage />
             </ProtectedRoute>
           }
         />
