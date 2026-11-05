@@ -1,5 +1,7 @@
+import { Suspense } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { ErrorBoundary } from '../ErrorBoundary'
+import { Spinner } from '../ui/Spinner'
 import { Footer } from './Footer'
 import { Header } from './Header'
 
@@ -12,7 +14,9 @@ export function Layout() {
       <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-10 sm:px-6">
         {/* key resets the boundary, so leaving a broken page clears the error */}
         <ErrorBoundary key={pathname}>
-          <Outlet />
+          <Suspense fallback={<Spinner />}>
+            <Outlet />
+          </Suspense>
         </ErrorBoundary>
       </main>
       <Footer />
