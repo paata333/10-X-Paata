@@ -57,8 +57,16 @@ complete a checkout. Built with React, TypeScript (strict) and Tailwind CSS v4.
 - **Toasts** – accessible notifications (`aria-live`), auto-dismiss after 3.5 s, close button, at
   most three at a time.
 
-**FULL (not implemented yet)** – Formik + Yup login; dark mode and `@theme` tokens; route-level code
-splitting; a class-based `ApiClient` and generic `useFetch`.
+- **Route-level code splitting** – every page is loaded with `React.lazy` and `Suspense`, so a page is
+  downloaded only when it is opened. The first visit of the catalog loads about 92 kB of gzipped
+  JavaScript instead of about 99 kB, and a failed chunk is caught by the Error Boundary.
+- **`ApiClient` and checked API data** – one class sends every request. Network failures, HTTP
+  errors and data that does not match the expected shape (`isProduct`, `isProductsResponse`) all
+  become an `ApiError`, so the pages show a clear message and a Retry button instead of crashing.
+  A generic `useFetch<T>` hook gives loading / error / success, cancels outdated requests and can
+  reload.
+
+**FULL (not implemented yet)** – Formik + Yup login and dark mode with `@theme` tokens.
 
 ## Tech Stack
 
@@ -73,7 +81,7 @@ splitting; a class-based `ApiClient` and generic `useFetch`.
 
 ```text
 src/
-├── api/            fetch functions and ApiError (products.api.ts)
+├── api/            ApiClient, ApiError and the product fetch functions
 ├── components/
 │   ├── cart/       CartItemRow, CartSummary
 │   ├── catalog/    CatalogToolbar
@@ -84,16 +92,16 @@ src/
 │   │               ReviewList, RelatedProducts, skeletons, StockBadge, StarRating
 │   └── ui/         Button, FormField, Page, Pagination, QuantityStepper, StatusMessage
 ├── context/        AuthContext, CartContext (+ cart.reducer.ts), ToastContext
-├── hooks/          useDebounce, useLogout, useNow, useProductReviews
+├── hooks/          useDebounce, useFetch<T>, useLogout, useNow, useProductReviews
 ├── models/         Cart, Order, StorageService<T>
 ├── pages/          Catalog, Product, Cart, Checkout, Orders, OrderDetails, Profile, Login, SignUp, NotFound
 ├── routes/         AppRoutes, ProtectedRoute
 ├── types/          Product, CartItem, AuthUser, form value and error types
-└── utils/          cart maths, formatting, validation, localStorage helpers
+└── utils/          cart maths, formatting, validation, type guards, localStorage helpers
 ```
 
-**Data flow.** Pages fetch data in `useEffect` through the functions in `src/api` (with an
-`AbortController`) and keep `loading`, `error` and `data` in local state. On the catalog page
+**Data flow.** Pages fetch data with the `useFetch` hook through the functions in `src/api`
+(`ApiClient` + an `AbortController`) and get a `loading` / `error` / `success` state back. On the catalog page
 the URL search params are the single source of truth for search, category, sort and page. Shared state lives in
 two React Contexts: `AuthContext` (who is signed in) and `CartContext` (cart items; every change
 is immutable and is mirrored to `localStorage`). Totals and the header badge are derived from
