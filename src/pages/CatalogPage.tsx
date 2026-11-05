@@ -11,7 +11,7 @@ import { Pagination } from '../components/ui/Pagination'
 import { StatusMessage } from '../components/ui/StatusMessage'
 import { useCart } from '../context/CartContext'
 import { useDebounce } from '../hooks/useDebounce'
-import type { Category, Product } from '../types/product'
+import { useFetch } from '../hooks/useFetch'
 import {
   PAGE_SIZE,
   buildCatalogSearch,
@@ -30,12 +30,17 @@ export function CatalogPage() {
   const params = parseCatalogParams(searchParams)
   const { q, category, sort, page } = params
 
-  const [products, setProducts] = useState<Product[]>([])
-  const [total, setTotal] = useState(0)
-  const [categories, setCategories] = useState<Category[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [reloadKey, setReloadKey] = useState(0)
+  const { state, reload } = useFetch(`${q}|${category}|${sort}|${page}`, (signal) =>
+    fetchProducts({ q, category, sort, limit: PAGE_SIZE, skip: (page - 1) * PAGE_SIZE }, signal),
+  )
+  // The filter still works without the list: only "All categories" is shown.
+  const { state: categoriesState } = useFetch('categories', fetchCategories)
+
+  const isLoading = state.status === 'loading'
+  const error = state.status === 'error' ? state.error.message : null
+  const products = useMemo(() => (state.status === 'success' ? state.data.products : []), [state])
+  const total = state.status === 'success' ? state.data.total : 0
+  const categories = categoriesState.status === 'success' ? categoriesState.data : []
 
   // The input keeps its own text so typing never lags; the URL follows after a pause.
   const [searchText, setSearchText] = useState(q)
@@ -73,47 +78,6 @@ export function CatalogPage() {
     }
   }, [q])
 
-  useEffect(() => {
-    const controller = new AbortController()
-
-    fetchCategories(controller.signal)
-      .then(setCategories)
-      .catch(() => {
-        // The filter still works without the list: only "All categories" is shown.
-      })
-
-    return () => controller.abort()
-  }, [])
-
-  useEffect(() => {
-    const controller = new AbortController()
-    setIsLoading(true)
-    setError(null)
-
-    fetchProducts(
-      { q, category, sort, limit: PAGE_SIZE, skip: (page - 1) * PAGE_SIZE },
-      controller.signal,
-    )
-      .then((data) => {
-        if (controller.signal.aborted) {
-          return
-        }
-        setProducts(data.products)
-        setTotal(data.total)
-        setIsLoading(false)
-      })
-      .catch((err: unknown) => {
-        if (controller.signal.aborted) {
-          return
-        }
-        setError(err instanceof Error ? err.message : 'Something went wrong')
-        setIsLoading(false)
-      })
-
-    // An answer to an outdated request must never replace the current one.
-    return () => controller.abort()
-  }, [q, category, sort, page, reloadKey])
-
   const visibleProducts = useMemo(() => sortProducts(products, sort), [products, sort])
   const totalPages = Math.ceil(total / PAGE_SIZE)
   const firstShown = (page - 1) * PAGE_SIZE + 1
@@ -144,7 +108,7 @@ export function CatalogPage() {
           variant="error"
           title="Could not load products"
           action={
-            <Button variant="dark" onClick={() => setReloadKey((key) => key + 1)}>
+            <Button variant="dark" onClick={reload}>
               Retry
             </Button>
           }
