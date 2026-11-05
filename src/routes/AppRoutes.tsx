@@ -1,16 +1,38 @@
+import { lazy } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import { Layout } from '../components/layout/Layout'
-import { CartPage } from '../pages/CartPage'
-import { CatalogPage } from '../pages/CatalogPage'
-import { CheckoutPage } from '../pages/CheckoutPage'
-import { LoginPage } from '../pages/LoginPage'
 import { NotFoundPage } from '../pages/NotFoundPage'
-import { OrderDetailsPage } from '../pages/OrderDetailsPage'
-import { OrdersPage } from '../pages/OrdersPage'
-import { ProductPage } from '../pages/ProductPage'
-import { ProfilePage } from '../pages/ProfilePage'
-import { SignUpPage } from '../pages/SignUpPage'
 import { ProtectedRoute } from './ProtectedRoute'
+
+// Every page is a separate chunk that is downloaded the first time it is opened.
+// The pages use named exports, so each import is mapped to the `default` that lazy() expects.
+const CatalogPage = lazy(() =>
+  import('../pages/CatalogPage').then((module) => ({ default: module.CatalogPage })),
+)
+const ProductPage = lazy(() =>
+  import('../pages/ProductPage').then((module) => ({ default: module.ProductPage })),
+)
+const CartPage = lazy(() =>
+  import('../pages/CartPage').then((module) => ({ default: module.CartPage })),
+)
+const CheckoutPage = lazy(() =>
+  import('../pages/CheckoutPage').then((module) => ({ default: module.CheckoutPage })),
+)
+const LoginPage = lazy(() =>
+  import('../pages/LoginPage').then((module) => ({ default: module.LoginPage })),
+)
+const SignUpPage = lazy(() =>
+  import('../pages/SignUpPage').then((module) => ({ default: module.SignUpPage })),
+)
+const OrdersPage = lazy(() =>
+  import('../pages/OrdersPage').then((module) => ({ default: module.OrdersPage })),
+)
+const OrderDetailsPage = lazy(() =>
+  import('../pages/OrderDetailsPage').then((module) => ({ default: module.OrderDetailsPage })),
+)
+const ProfilePage = lazy(() =>
+  import('../pages/ProfilePage').then((module) => ({ default: module.ProfilePage })),
+)
 
 export function AppRoutes() {
   return (
