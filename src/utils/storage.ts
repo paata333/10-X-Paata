@@ -3,6 +3,7 @@ import { StorageService } from '../models/StorageService'
 import type { CartItem, CartState } from '../types/cart'
 import type { OrderData, ShippingInfo } from '../types/order'
 import type { Review } from '../types/product'
+import { isRecord, isReview } from './guards'
 
 export const STORAGE_KEYS = {
   cart: 'shop_cart',
@@ -10,10 +11,6 @@ export const STORAGE_KEYS = {
   reviews: 'shop_reviews',
   theme: 'shop_theme',
 } as const
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value)
-}
 
 function isCartItem(value: unknown): value is CartItem {
   return (
@@ -27,18 +24,6 @@ function isCartItem(value: unknown): value is CartItem {
     typeof value.quantity === 'number' &&
     Number.isInteger(value.quantity) &&
     value.quantity >= 1
-  )
-}
-
-function isReview(value: unknown): value is Review {
-  return (
-    isRecord(value) &&
-    typeof value.rating === 'number' &&
-    value.rating >= 1 &&
-    value.rating <= 5 &&
-    typeof value.comment === 'string' &&
-    typeof value.date === 'string' &&
-    typeof value.reviewerName === 'string'
   )
 }
 
