@@ -1,8 +1,9 @@
 import type { Category, Product, ProductsResponse } from '../types/product'
 import { SORT_OPTIONS, type SortValue } from '../utils/catalogParams'
-import { ApiError } from './ApiError'
+import { guardToParser, isProduct, isProductsResponse, parseCategories } from '../utils/guards'
+import { ApiClient } from './ApiClient'
 
-const API_BASE_URL = 'https://dummyjson.com'
+const apiClient = new ApiClient('https://dummyjson.com')
 
 export interface ProductsQuery {
   q?: string
@@ -12,17 +13,7 @@ export interface ProductsQuery {
   skip: number
 }
 
-async function getOk(url: string, signal?: AbortSignal): Promise<Response> {
-  const response = await fetch(url, { signal })
-
-  if (!response.ok) {
-    throw new ApiError(response.status, `Request failed with status ${response.status}`)
-  }
-
-  return response
-}
-
-export function buildProductsUrl(query: ProductsQuery): string {
+export function buildProductsPath(query: ProductsQuery): string {
   const params = new URLSearchParams()
 
   if (query.q) {
@@ -45,26 +36,17 @@ export function buildProductsUrl(query: ProductsQuery): string {
     path = `/products/category/${encodeURIComponent(query.category)}`
   }
 
-  return `${API_BASE_URL}${path}?${params.toString()}`
+  return `${path}?${params.toString()}`
 }
 
-export async function fetchProducts(
-  query: ProductsQuery,
-  signal?: AbortSignal,
-): Promise<ProductsResponse> {
-  const response = await getOk(buildProductsUrl(query), signal)
-  const data: ProductsResponse = await response.json()
-  return data
+export function fetchProducts(query: ProductsQuery, signal?: AbortSignal): Promise<ProductsResponse> {
+  return apiClient.get(buildProductsPath(query), guardToParser(isProductsResponse), signal)
 }
 
-export async function fetchProduct(id: number, signal?: AbortSignal): Promise<Product> {
-  const response = await getOk(`${API_BASE_URL}/products/${id}`, signal)
-  const data: Product = await response.json()
-  return data
+export function fetchProduct(id: number, signal?: AbortSignal): Promise<Product> {
+  return apiClient.get(`/products/${id}`, guardToParser(isProduct), signal)
 }
 
-export async function fetchCategories(signal?: AbortSignal): Promise<Category[]> {
-  const response = await getOk(`${API_BASE_URL}/products/categories`, signal)
-  const data: Category[] = await response.json()
-  return data
+export function fetchCategories(signal?: AbortSignal): Promise<Category[]> {
+  return apiClient.get('/products/categories', parseCategories, signal)
 }
