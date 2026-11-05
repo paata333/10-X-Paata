@@ -1,8 +1,9 @@
 # REPORT — 10X Shop
 
 > Status: **CORE complete, most of FULL done** (catalog search / filter / sort / pagination / URL
-> state, reviews, related products, reducer cart with promo and shipping, orders, profile, toasts).
-> The remaining FULL rows and the `TODO` cells are updated before submission.
+> state, reviews, related products, reducer cart with promo and shipping, orders, profile, toasts,
+> lazy routes, `ApiClient`, `useFetch`). Dark mode and Formik + Yup are not done. The `TODO` cells
+> are updated before submission.
 
 ## 1. Planned vs delivered
 
@@ -29,21 +30,25 @@
 | Formik + Yup login, advanced validation | FULL | Not done | – |
 | Dark mode, `@theme` tokens | FULL | Not done | – |
 | Route-level code splitting, Lighthouse targets | FULL | Not done | – |
-| OOP `ApiClient`, generic `useFetch` | FULL | Not done | – |
-| Type guards and utility types (`Pick`, `Required`, `Partial`) | FULL | Partly done | `utils/storage.ts`, `types/cart.ts`, `types/user.ts` |
+| OOP `ApiClient`, generic `useFetch<T>` | FULL | Done | `api/ApiClient.ts`, `hooks/useFetch.ts` |
+| Type guards (`isProduct`, `isProductsResponse`, `isApiError`) and utility types (`Pick`, `Required`, `Partial`) | FULL | Done | `utils/guards.ts`, `types/` |
+| Route-level code splitting (`React.lazy` + `Suspense`) | FULL | Done | `routes/AppRoutes.tsx`, `Layout.tsx`, `Spinner.tsx` |
 
 Why part of FULL is still open: the project started on 26 October 2026, nine days after the
-official start, so CORE was finished first and FULL is added in order of value. Not done yet:
-Formik + Yup, dark mode with `@theme`, lazy routes, `ApiClient` / `useFetch`, Lighthouse targets.
+official start, so CORE was finished first and FULL is added in order of value. Not done:
+Formik + Yup and dark mode with `@theme` (both touch almost every component and were left out
+to avoid last-minute bugs before the test) and the Lighthouse targets, which need the deployed site.
 
 ## 2. Metrics
 
 | Metric | Value |
 | --- | --- |
-| Production bundle (JS) | 327.74 kB, 98.37 kB gzip (target: ≤ 250 kB gzip) |
-| Production bundle (CSS) | 32.75 kB, 6.87 kB gzip |
+| JavaScript, all chunks together | 328.6 kB, 108.7 kB gzip in 20 files (target: ≤ 250 kB gzip) |
+| JavaScript for the first visit of the catalog | about 92 kB gzip in 5 files, measured in Chromium (was about 99 kB before code splitting) |
+| Main chunk (React, Router, shared code) | 230.19 kB, 72.28 kB gzip |
+| CSS | 32.86 kB, 6.89 kB gzip |
 | TypeScript / ESLint errors | 0 / 0 |
-| Source size | about 4,200 lines of TypeScript / TSX |
+| Source size | about 4,300 lines of TypeScript / TSX |
 | Commits | TODO: `git rev-list --count HEAD` |
 | Lighthouse (mobile) before → after | TODO: run on the deployed site and add `docs/lighthouse/before.png` and `after.png` |
 | Hours per epic, planned vs actual | planned: 43 h in `PLAN.md`; TODO: actual hours |
@@ -72,6 +77,10 @@ Formik + Yup, dark mode with `@theme`, lazy routes, `ApiClient` / `useFetch`, Li
    user could land on the cart instead of the order. The page now remembers the new order id and
    renders `<Navigate>` to the order first, so the empty-cart redirect can never win. The status
    of an order is never stored: it is calculated from the time, so it cannot become out of date.
+6. **Not trusting data from the network.** The API answer is JSON, which has no types, so a
+   missing field would show up as `NaN` or a crash far from its cause. `ApiClient` now checks every
+   answer with type guards and turns network failures, HTTP errors and unexpected data into one
+   `ApiError`, which the pages show with a Retry button.
 
 ## 4. What I would do differently
 
@@ -112,9 +121,10 @@ day at a time.
 | Context | `AuthContext` (`useAuth`), `CartContext` (`useCart`), `ToastContext` (`useToast`) |
 | `useEffect` dependencies | `CatalogPage` (`[]`), `ProductPage` (`[productId]`), `CartContext` (`[items]`), `CheckoutPage` (timer), `ScrollToTop` (`[pathname]`) |
 | Immutable state | `CartContext` (`map`, `filter`, spread), form handlers (`setValues(prev => ({ ...prev }))`) |
-| Custom hooks | `useDebounce` (generic), `useProductReviews`, `useNow` (interval with cleanup), `useLogout` |
+| Custom hooks | `useDebounce<T>`, `useFetch<T>` (loading / error / success, abort, reload), `useProductReviews`, `useNow` (interval with cleanup), `useLogout` |
+| Lazy loading | `React.lazy` + `Suspense` around the page outlet, inside the Error Boundary |
 | `useReducer` and discriminated unions | `cart.reducer.ts`: `CartAction` union, `switch` with a `never` check, pure and tested without React |
-| Classes and generics | `Cart` (implements `ICart`), `Order` (private constructor, factory), `StorageService<T>` |
+| Classes and generics | `Cart` (implements `ICart`), `Order` (private constructor, factory), `StorageService<T>`, `ApiClient.get<T>` |
 | Type guards and utility types | `isCartItem`, `isOrderData` in `storage.ts`; `Pick`, `Required`, `Partial` in `types/` |
 | `useRef`, `useMemo`, `useCallback` | `CatalogPage` (last pushed query), `useProductReviews` (merged reviews, average), `CartContext` (stable actions) |
 | URL state | `useSearchParams` in `CatalogPage`, parsing and validation in `utils/catalogParams.ts` |
