@@ -1,13 +1,12 @@
-import { useEffect, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
-import { ApiError } from '../api/ApiError'
 import { fetchProduct } from '../api/products.api'
 import { ProductDetails } from '../components/product/ProductDetails'
 import { ProductDetailsSkeleton } from '../components/product/ProductDetailsSkeleton'
 import { RelatedProducts } from '../components/product/RelatedProducts'
 import { Button } from '../components/ui/Button'
 import { StatusMessage } from '../components/ui/StatusMessage'
-import type { Product } from '../types/product'
+import { useFetch } from '../hooks/useFetch'
+import { isApiError } from '../utils/guards'
 import { NotFoundPage } from './NotFoundPage'
 
 function parseProductId(id: string | undefined): number | null {
@@ -23,47 +22,17 @@ export function ProductPage() {
   const location = useLocation()
   const productId = parseProductId(id)
 
-  const [product, setProduct] = useState<Product | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [isNotFound, setIsNotFound] = useState(false)
-  const [reloadKey, setReloadKey] = useState(0)
+  // An invalid id is never sent to the API.
+  const { state, reload } = useFetch(
+    `product-${productId}`,
+    (signal) => fetchProduct(productId ?? 0, signal),
+    productId !== null,
+  )
 
-  useEffect(() => {
-    if (productId === null) {
-      return
-    }
-
-    const controller = new AbortController()
-    setProduct(null)
-    setIsLoading(true)
-    setError(null)
-    setIsNotFound(false)
-
-    fetchProduct(productId, controller.signal)
-      .then((data) => {
-        if (controller.signal.aborted) {
-          return
-        }
-        setProduct(data)
-        setIsLoading(false)
-      })
-      .catch((err: unknown) => {
-        if (controller.signal.aborted) {
-          return
-        }
-        if (err instanceof ApiError && err.status === 404) {
-          setIsNotFound(true)
-        } else {
-          setError(err instanceof Error ? err.message : 'Something went wrong')
-        }
-        setIsLoading(false)
-      })
-
-    return () => controller.abort()
-  }, [productId, reloadKey])
-
-  if (productId === null || isNotFound) {
+  if (productId === null) {
+    return <NotFoundPage />
+  }
+  if (state.status === 'error' && isApiError(state.error) && state.error.status === 404) {
     return <NotFoundPage />
   }
 
@@ -86,26 +55,26 @@ export function ProductPage() {
         ← Back to catalog
       </button>
 
-      {isLoading && <ProductDetailsSkeleton />}
+      {state.status === 'loading' && <ProductDetailsSkeleton />}
 
-      {error && (
+      {state.status === 'error' && (
         <StatusMessage
           variant="error"
           title="Could not load this product"
           action={
-            <Button variant="dark" onClick={() => setReloadKey((key) => key + 1)}>
+            <Button variant="dark" onClick={reload}>
               Retry
             </Button>
           }
         >
-          {error}. Please check your connection and try again.
+          {state.error.message}. Please check your connection and try again.
         </StatusMessage>
       )}
 
-      {product && (
+      {state.status === 'success' && (
         <>
-          <ProductDetails key={product.id} product={product} />
-          <RelatedProducts key={`related-${product.id}`} product={product} />
+          <ProductDetails key={state.data.id} product={state.data} />
+          <RelatedProducts key={`related-${state.data.id}`} product={state.data} />
         </>
       )}
     </section>
