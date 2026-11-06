@@ -7,7 +7,7 @@ complete a checkout. Built with React, TypeScript (strict) and Tailwind CSS v4.
 ## Live Demo
 
 > Add the deployed URL here after the first Vercel / Netlify deploy, for example
-> `https://10x-shop-yourname.vercel.app`, and check that `/products/5` opens directly.
+> `https://10xshop-sepia.vercel.app/`, and check that `/products/5` opens directly.
 
 ## Features
 
